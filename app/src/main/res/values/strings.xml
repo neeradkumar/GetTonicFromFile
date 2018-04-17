@@ -1,0 +1,23 @@
+<resources>
+    <string name="app_name">Get Tonic From File</string>
+    <string name="online">Online</string>
+    <string name="offline">Offline</string>
+    <string name="choose_mode">Select mode of calculation</string>
+    <string name="upload_in_progress">Uploading..</string>
+    <string name="female">Female</string>
+    <string name="male">Male</string>
+    <string name="instrument">Instrument</string>
+    <string name="other">Other</string>
+    <string name="calculate">Calculate</string>
+    <string name="upload_complete">Uploaded</string>
+    <string name="calculating_wait">Calculating.. Please wait</string>
+    <string name="ok">OK</string>
+    <string name="measure_another">Measure another</string>
+    <string name="calculated_tonic">Calculated tonic is %1$s</string>
+    <string name="success">Success!</string>
+    <string name="stay">STAY</string>
+    <string name="leave">Leave</string>
+    <string name="are_you_sure">Are you sure you want to leave?</string>
+    <string name="all_progress_will_be_lost">Any upload progress will be lost</string>
+    <string name="change_metadata">Change Metadata</string>
+</resources>
