@@ -20,4 +20,7 @@
     <string name="are_you_sure">Are you sure you want to leave?</string>
     <string name="all_progress_will_be_lost">Any upload progress will be lost</string>
     <string name="change_metadata">Change Metadata</string>
+    <string name="need_permissions">Need all requested permissions to proceed</string>
+    <string name="exit">exit</string>
+    <string name="offline_experimental">Offline (experimental)</string>
 </resources>

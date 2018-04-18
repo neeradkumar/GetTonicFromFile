@@ -1,15 +1,11 @@
 package iitm.speechlab.gettonicfromfile.activity;
 
-import android.Manifest;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
-import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.AsyncTask;
-import android.os.Build;
 import android.os.Bundle;
-import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
@@ -36,28 +32,22 @@ import iitm.speechlab.gettonicfromfile.Constants;
 import iitm.speechlab.gettonicfromfile.MultiPartUtils;
 import iitm.speechlab.gettonicfromfile.R;
 import iitm.speechlab.gettonicfromfile.TableButtonGroupLayout;
+import iitm.speechlab.gettonicfromfile.WavFileException;
 
 public class OnlineCalculationActivity extends AppCompatActivity {
 
     String fileName;
     boolean uploadComplete = false;
     String uploadId;
+    String filePath;
     boolean finishing = false;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_online_calculation);
         Uri file = getIntent().getParcelableExtra(Constants.URI);
-        String filePath = file.getPath();
+        filePath = file.getPath();
         fileName = (new File(filePath)).getName();
-
-        if(!checkPermission(Manifest.permission.READ_EXTERNAL_STORAGE)){
-            try {
-                requestPermission(Manifest.permission.READ_EXTERNAL_STORAGE);
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }
 
         //set default as male
         RadioButton maleRadioButton = findViewById(R.id.metadata_male);
@@ -114,14 +104,6 @@ public class OnlineCalculationActivity extends AppCompatActivity {
 
     }
 
-    public boolean checkPermission(String permission) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            int result = checkSelfPermission(permission);
-            return result == PackageManager.PERMISSION_GRANTED;
-        }
-        return false;
-    }
-
 
     @Override
     public boolean onKeyDown(int keyCode, KeyEvent event) {
@@ -165,20 +147,11 @@ public class OnlineCalculationActivity extends AppCompatActivity {
         alertDialog.show();
     }
 
-    public void requestPermission(String permission) throws Exception {
-        try {
-            ActivityCompat.requestPermissions(this, new String[]{permission},
-                    1);
-        } catch (Exception e) {
-            e.printStackTrace();
-            throw e;
-        }
-    }
 
     public void uploadFTP(final Context context, String filePath, UploadStatusDelegate uploadStatusDelegate) {
         try {
              uploadId =
-                    new FTPUploadRequest(context, "192.168.31.217", 2121)
+                    new FTPUploadRequest(context, "192.168.31.217", 2122)
                             .setUsernameAndPassword("user", "1234")
                             .addFileToUpload( filePath,"/")
                             .setNotificationConfig(new UploadNotificationConfig())
@@ -244,12 +217,13 @@ public class OnlineCalculationActivity extends AppCompatActivity {
             OnlineCalculationActivity activity = activityReference.get();
             if (activity == null || activity.isFinishing()) return;
             dialog.setMessage(activity.getResources().getString(R.string.calculating_wait));
+            dialog.setCancelable(false);
             dialog.show();
         }
 
         @Override
         protected String doInBackground(Void... params) {
-            return calculateTonic(fileName,metadata);
+            return calculateTonicOnline(fileName,metadata);
         }
 
         @Override
@@ -282,22 +256,29 @@ public class OnlineCalculationActivity extends AppCompatActivity {
 
         }
 
-        private String calculateTonic(String fileName, String metadata) {
-            String responseString = null;
+        private String calculateTonicOnline(String fileName, String metadata) {
+            String responseString;
 
             try {
-                String requestURL = "http://192.168.31.217:4998/uploadAudioFile";
+                String requestURL = "http://192.168.31.217:4998/getTonicDrone";
                 MultiPartUtils multipart = new MultiPartUtils(requestURL);
                 multipart.addFormField("file_name", fileName);
                 multipart.addFormField("meta_data", metadata);
-
                 responseString = multipart.finish();
-
-
             } catch (IOException e) {
                 responseString = e.toString();
             }
 
+            return responseString;
+        }
+
+        private String calculateTonicOffline(String fileName, String metadata) {
+            String responseString;
+            try{
+                responseString = ""+AudioUtils.getTonicDrone(fileName,Integer.parseInt(metadata),90,10,1);
+            } catch (Exception e) {
+                responseString = e.toString();
+            }
             return responseString;
         }
 

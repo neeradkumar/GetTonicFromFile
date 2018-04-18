@@ -1,7 +1,11 @@
 package iitm.speechlab.gettonicfromfile.activity;
 
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.net.Uri;
+import android.os.Environment;
+import android.os.PersistableBundle;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
@@ -9,16 +13,86 @@ import android.widget.RadioGroup;
 
 import com.aditya.filebrowser.Constants;
 import com.aditya.filebrowser.FileChooser;
+import com.sensorberg.permissionbitte.BitteBitte;
+import com.sensorberg.permissionbitte.PermissionBitte;
 
+import java.io.File;
+import java.net.URI;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Locale;
+
+import cafe.adriel.androidaudiorecorder.AndroidAudioRecorder;
+import cafe.adriel.androidaudiorecorder.model.AudioChannel;
+import cafe.adriel.androidaudiorecorder.model.AudioSampleRate;
+import cafe.adriel.androidaudiorecorder.model.AudioSource;
 import iitm.speechlab.gettonicfromfile.R;
 
 public class ModeSelectionActivity extends AppCompatActivity {
     public static final int PICK_FILE_REQUEST = 1;
+    String recordedFilePath;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_mode_selection);
+        if(savedInstanceState!=null){
+            recordedFilePath = savedInstanceState.getString("filepath");
+        }
+    }
+
+    @Override
+    public void onSaveInstanceState(Bundle outState, PersistableBundle outPersistentState) {
+        outState.putString("filepath",recordedFilePath);
+        super.onSaveInstanceState(outState, outPersistentState);
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        askPermissions();
+    }
+
+    private void askPermissions() {
+        if(PermissionBitte.shouldAsk(this, null)){
+            PermissionBitte.ask(this, new BitteBitte() {
+                @Override
+                public void yesYouCan() {
+
+                }
+
+                @Override
+                public void noYouCant() {
+                    PermissionBitte.goToSettings(ModeSelectionActivity.this);
+                }
+
+                @Override
+                public void askNicer() {
+                    showPermissionsRequiredDialog();
+                }
+            });
+        }
+    }
+
+    private void showPermissionsRequiredDialog() {
+        AlertDialog alertDialog = new AlertDialog.Builder(ModeSelectionActivity.this).create();
+        alertDialog.setMessage(getResources().getString(R.string.need_permissions));
+        alertDialog.setButton(AlertDialog.BUTTON_NEGATIVE, getResources().getString(R.string.exit),
+                new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int which) {
+                        dialog.dismiss();
+                        finish();
+                    }
+                });
+        alertDialog.setButton(AlertDialog.BUTTON_POSITIVE, getResources().getString(R.string.ok),
+                new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int which) {
+                        dialog.dismiss();
+                        askPermissions();
+                    }
+                });
+        alertDialog.show();
     }
 
     public void onChooseFileClicked(View view){
@@ -29,7 +103,19 @@ public class ModeSelectionActivity extends AppCompatActivity {
     }
 
     public void onRecordClicked(View view) {
-
+        recordedFilePath = Environment.getExternalStorageDirectory() + "/recorded_audio_"+getTimeString()+".wav";
+        int color = getResources().getColor(R.color.colorPrimaryDark);
+        int requestCode = 0;
+        AndroidAudioRecorder.with(this)
+                .setFilePath(recordedFilePath)
+                .setColor(color)
+                .setRequestCode(requestCode)
+                .setSource(AudioSource.MIC)
+                .setChannel(AudioChannel.STEREO)
+                .setSampleRate(AudioSampleRate.HZ_48000)
+                .setAutoStart(false)
+                .setKeepDisplayOn(true)
+                .record();
     }
 
 
@@ -40,6 +126,14 @@ public class ModeSelectionActivity extends AppCompatActivity {
             if (resultCode == RESULT_OK) {
                 Uri file = data.getData();
                 startMainActivity(file);
+            }
+        }
+        if (requestCode == 0) {
+            if (resultCode == RESULT_OK) {
+                Uri file = Uri.fromFile(new File(recordedFilePath));
+                startMainActivity(file);
+            } else if (resultCode == RESULT_CANCELED) {
+                // Oops! User has canceled the recording
             }
         }
     }
@@ -60,5 +154,11 @@ public class ModeSelectionActivity extends AppCompatActivity {
             intent.putExtra(iitm.speechlab.gettonicfromfile.Constants.URI,uri);
             startActivity(intent);
         }
+    }
+
+    private String getTimeString(){
+        Date today = new Date();
+        SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd_hh:mm:ss_a", Locale.US);
+        return (format.format(today));
     }
 }
