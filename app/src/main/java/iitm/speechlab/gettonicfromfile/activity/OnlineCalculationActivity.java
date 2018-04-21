@@ -31,6 +31,7 @@ import java.lang.ref.WeakReference;
 import iitm.speechlab.gettonicfromfile.Constants;
 import iitm.speechlab.gettonicfromfile.networkUtils.MultiPartUtils;
 import iitm.speechlab.gettonicfromfile.R;
+import iitm.speechlab.gettonicfromfile.networkUtils.SharedPrefUtils;
 import iitm.speechlab.gettonicfromfile.views.TableButtonGroupLayout;
 
 public class OnlineCalculationActivity extends AppCompatActivity {
@@ -149,8 +150,11 @@ public class OnlineCalculationActivity extends AppCompatActivity {
 
     public void uploadFTP(final Context context, String filePath, UploadStatusDelegate uploadStatusDelegate) {
         try {
+            String server = SharedPrefUtils.getStringData(context,Constants.FTP_SERVER,Constants.DEFAULT_FTP_SERVER);
+            String[] words = server.split(":");
+            String
              uploadId =
-                    new FTPUploadRequest(context, "192.168.31.217", 2122)
+                    new FTPUploadRequest(context, words[0], Integer.parseInt(words[1]))
                             .setUsernameAndPassword("user", "1234")
                             .addFileToUpload( filePath,"/")
                             .setNotificationConfig(new UploadNotificationConfig())
@@ -201,6 +205,9 @@ public class OnlineCalculationActivity extends AppCompatActivity {
         private WeakReference<OnlineCalculationActivity> activityReference;
         String fileName;
         String metadata;
+        String percentage;
+        String seconds;
+        String method;
         private ProgressDialog dialog;
         // only retain a weak reference to the activity
         GetTonicDrone (OnlineCalculationActivity context, String fileName, String metadata) {
@@ -208,6 +215,9 @@ public class OnlineCalculationActivity extends AppCompatActivity {
             this.fileName = fileName;
             this.metadata = metadata;
             dialog = new ProgressDialog(context);
+            percentage = SharedPrefUtils.getStringData(context, Constants.PERCENTAGE, Constants.DEFAULT_PERCENTAGE);
+            seconds = SharedPrefUtils.getStringData(context, Constants.NO_SECS, Constants.DEFAULT_SECONDS);
+            method = SharedPrefUtils.getStringData(context, Constants.DEFAULT_METHOD, Constants.DEFAULT_METHOD);
         }
 
         @Override
@@ -222,7 +232,7 @@ public class OnlineCalculationActivity extends AppCompatActivity {
 
         @Override
         protected String doInBackground(Void... params) {
-            return calculateTonicOnline(fileName,metadata);
+            return calculateTonicOnline(fileName,metadata, percentage, seconds, method);
         }
 
         @Override
@@ -255,14 +265,17 @@ public class OnlineCalculationActivity extends AppCompatActivity {
 
         }
 
-        private String calculateTonicOnline(String fileName, String metadata) {
+        private String calculateTonicOnline(String fileName, String metadata,  String percentage, String seconds, String method) {
             String responseString;
 
             try {
-                String requestURL = "http://192.168.31.217:4998/getTonicDrone";
+                String requestURL = "http://"+SharedPrefUtils.getStringData(activityReference.get(),Constants.SERVER, Constants.DEFAULT_SERVER)+"/getTonicDrone";
                 MultiPartUtils multipart = new MultiPartUtils(requestURL);
                 multipart.addFormField("file_name", fileName);
                 multipart.addFormField("meta_data", metadata);
+                multipart.addFormField("percentage", percentage);
+                multipart.addFormField("seconds", seconds);
+                multipart.addFormField("method", method);
                 responseString = multipart.finish();
             } catch (IOException e) {
                 responseString = e.toString();

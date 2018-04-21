@@ -5,13 +5,15 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context=".activity.ModeSelectionActivity"
-    android:orientation="vertical">
+    android:orientation="vertical"
+    android:background="@color/White">
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:textSize="18sp"
         android:layout_marginTop="10dp"
         android:layout_marginLeft="20dp"
+        android:layout_marginRight="20dp"
         android:text="@string/choose_mode"
         android:textColor="@color/Black"/>
     <RadioGroup
@@ -31,29 +33,77 @@
             />
         <RadioButton
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_height="50dp"
             android:layout_weight="1"
             android:text="@string/offline_experimental"
             android:id="@+id/offline_button"/>
     </RadioGroup>
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textSize="18sp"
+
+        android:layout_marginBottom="10dp"
+        android:layout_marginLeft="20dp"
+        android:layout_marginRight="20dp"
+        android:text="@string/choose_file"
+        android:textColor="@color/Black"/>
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal">
+        android:orientation="horizontal"
+        android:layout_marginLeft="20dp"
+        android:layout_marginRight="20dp"
+        android:layout_marginBottom="10dp">
         <ImageButton
             android:layout_width="match_parent"
             android:layout_weight="1"
-            android:layout_height="wrap_content"
+            android:layout_height="80dp"
             android:onClick="onChooseFileClicked"
-            android:src="@mipmap/ic_launcher"/>
+            android:src="@drawable/ic_folder_black_48dp"
+            android:background="@drawable/button_background_rounded_rect"
+            android:layout_margin="10dp"
+            />
         <ImageButton
+            android:layout_margin="10dp"
             android:id="@+id/record_audio_button"
             android:layout_width="match_parent"
             android:layout_weight="1"
-            android:layout_height="wrap_content"
+            android:layout_height="80dp"
             android:onClick="onRecordClicked"
-            android:src="@mipmap/ic_launcher"/>
+            android:src="@drawable/ic_mic_white_48dp"
+            android:background="@drawable/button_background_rounded_rect"
+            />
 
+    </LinearLayout>
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:layout_marginLeft="10dp"
+        android:layout_marginRight="10dp"
+        android:paddingRight="10dp"
+        android:paddingLeft="10dp"
+        android:paddingTop="10dp"
+        android:layout_marginBottom="10dp"
+        android:background="@drawable/rounded_rect_border">
+        <TextView
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="match_parent"
+            android:textSize="14sp"
+            android:textColor="@color/Black"
+            android:text="@string/settings_text"
+            android:id="@+id/settings_text"
+            />
+        <Button
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@drawable/button_background_rounded_rect"
+            android:text="@string/change"
+            android:textColor="@color/White"
+            android:onClick="onChangeSettingsClicked"
+            android:layout_marginRight="10dp"/>
     </LinearLayout>
 
 </LinearLayout>

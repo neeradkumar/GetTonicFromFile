@@ -10,6 +10,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.RadioGroup;
+import android.widget.TextView;
 
 import com.aditya.filebrowser.Constants;
 import com.aditya.filebrowser.FileChooser;
@@ -27,6 +28,7 @@ import cafe.adriel.androidaudiorecorder.model.AudioChannel;
 import cafe.adriel.androidaudiorecorder.model.AudioSampleRate;
 import cafe.adriel.androidaudiorecorder.model.AudioSource;
 import iitm.speechlab.gettonicfromfile.R;
+import iitm.speechlab.gettonicfromfile.networkUtils.SharedPrefUtils;
 
 public class ModeSelectionActivity extends AppCompatActivity {
     public static final int PICK_FILE_REQUEST = 1;
@@ -40,6 +42,7 @@ public class ModeSelectionActivity extends AppCompatActivity {
         if(savedInstanceState!=null){
             recordedFilePath = savedInstanceState.getString("filepath");
         }
+        updateSettingsText();
     }
 
     @Override
@@ -128,13 +131,16 @@ public class ModeSelectionActivity extends AppCompatActivity {
                 startMainActivity(file);
             }
         }
-        if (requestCode == 0) {
+        else if (requestCode == 0) {
             if (resultCode == RESULT_OK) {
                 Uri file = Uri.fromFile(new File(recordedFilePath));
                 startMainActivity(file);
             } else if (resultCode == RESULT_CANCELED) {
                 // Oops! User has canceled the recording
             }
+        }
+        else if(requestCode==1){
+            updateSettingsText();
         }
     }
 
@@ -158,7 +164,20 @@ public class ModeSelectionActivity extends AppCompatActivity {
 
     private String getTimeString(){
         Date today = new Date();
-        SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd_hh:mm:ss_a", Locale.US);
-        return (format.format(today));
+        SimpleDateFormat format = new SimpleDateFormat("yyyy_MM_dd_hh_mm_ss_a", Locale.US);
+        return ((format.format(today)).replaceAll("\\W+", "_"));
+    }
+
+    public void onChangeSettingsClicked(View view) {
+        Intent intent = new Intent(ModeSelectionActivity.this, SettingsActivity.class);
+        startActivityForResult(intent,1);
+    }
+
+    private void updateSettingsText(){
+        TextView settingsText = findViewById(R.id.settings_text);
+        String algoUsed = SharedPrefUtils.getStringData(this, iitm.speechlab.gettonicfromfile.Constants.ALGO, iitm.speechlab.gettonicfromfile.Constants.DEFAULT_METHOD);
+        String secondsUsed = SharedPrefUtils.getStringData(this, iitm.speechlab.gettonicfromfile.Constants.NO_SECS,iitm.speechlab.gettonicfromfile.Constants.DEFAULT_SECONDS);
+        String percentageFrames = SharedPrefUtils.getStringData(this, iitm.speechlab.gettonicfromfile.Constants.PERCENTAGE,iitm.speechlab.gettonicfromfile.Constants.DEFAULT_PERCENTAGE);
+        settingsText.setText(getString(R.string.settings_text, algoUsed, secondsUsed, percentageFrames));
     }
 }
