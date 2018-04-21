@@ -66,33 +66,51 @@ public class OnlineCalculationActivity extends AppCompatActivity {
             uploadedImageView.setVisibility(View.GONE);
             progressBar.setProgress(0);
 
-            uploadFTP(this, filePath,
-                    new UploadStatusDelegate() {
-                        @Override
-                        public void onProgress(Context context, UploadInfo uploadInfo) {
-                            uploadSpeed.setText(uploadInfo.getUploadRateString());
-                            progressBar.setProgress(uploadInfo.getProgressPercent());
-                        }
+            final UploadStatusDelegate uploadStatusDelegate = new UploadStatusDelegate() {
+                @Override
+                public void onProgress(Context context, UploadInfo uploadInfo) {
+                    uploadSpeed.setText(uploadInfo.getUploadRateString());
+                    progressBar.setProgress(uploadInfo.getProgressPercent());
+                }
 
-                        @Override
-                        public void onError(Context context, UploadInfo uploadInfo, ServerResponse serverResponse, Exception exception) {
-                            Log.e("AndroidUploadService", exception.getMessage(), exception);
-                        }
+                @Override
+                public void onError(Context context, UploadInfo uploadInfo, ServerResponse serverResponse, Exception exception) {
+                    final UploadStatusDelegate uploadStatusDelegate1 = this;
+                    AlertDialog alertDialog = new AlertDialog.Builder(OnlineCalculationActivity.this).create();
+                    alertDialog.setMessage(getResources().getString(R.string.upload_failed));
+                    alertDialog.setButton(AlertDialog.BUTTON_POSITIVE, getResources().getString(R.string.retry),
+                            new DialogInterface.OnClickListener() {
+                                public void onClick(DialogInterface dialog, int which) {
+                                    dialog.dismiss();
+                                    uploadFTP(OnlineCalculationActivity.this,filePath, uploadStatusDelegate1);
+                                }
+                            });
+                    alertDialog.setButton(AlertDialog.BUTTON_NEGATIVE, getResources().getString(R.string.leave),
+                            new DialogInterface.OnClickListener() {
+                                public void onClick(DialogInterface dialog, int which) {
+                                    dialog.dismiss();
+                                    OnlineCalculationActivity.super.onPause();
+                                    finishActivity();
+                                }
+                            });
+                    alertDialog.show();
+                }
 
-                        @Override
-                        public void onCompleted(Context context, UploadInfo uploadInfo, ServerResponse serverResponse) {
-                            calculateButton.setEnabled(true);
-                            statusTextView.setText(R.string.upload_complete);
-                            uploadedImageView.setVisibility(View.VISIBLE);
-                            uploadSpeed.setVisibility(View.GONE);
-                            progressBar.setProgress(100);
-                        }
+                @Override
+                public void onCompleted(Context context, UploadInfo uploadInfo, ServerResponse serverResponse) {
+                    calculateButton.setEnabled(true);
+                    statusTextView.setText(R.string.upload_complete);
+                    uploadedImageView.setVisibility(View.VISIBLE);
+                    uploadSpeed.setVisibility(View.GONE);
+                    progressBar.setProgress(100);
+                }
 
-                        @Override
-                        public void onCancelled(Context context, UploadInfo uploadInfo) {
+                @Override
+                public void onCancelled(Context context, UploadInfo uploadInfo) {
 
-                        }
-                    });
+                }
+            };
+            uploadFTP(this, filePath, uploadStatusDelegate);
         }
         else{
             calculateButton.setEnabled(true);
@@ -175,7 +193,7 @@ public class OnlineCalculationActivity extends AppCompatActivity {
         uploadFileToServer.execute();
     }
 
-    private String getMetadata(int checkedRadioButtonId) {
+    public static String getMetadata(int checkedRadioButtonId) {
         switch (checkedRadioButtonId){
             case R.id.metadata_female:
                 return "2";
@@ -199,6 +217,8 @@ public class OnlineCalculationActivity extends AppCompatActivity {
         UploadService.stopAllUploads();
         super.onDestroy();
     }
+
+
 
     public static class GetTonicDrone extends AsyncTask<Void, Integer, String> {
 
@@ -243,10 +263,16 @@ public class OnlineCalculationActivity extends AppCompatActivity {
             final OnlineCalculationActivity activity = activityReference.get();
             if (activity == null || activity.isFinishing()) return;
 
-
+            Log.d("OnlineCalculationAct","start"+s+"end");
             AlertDialog alertDialog = new AlertDialog.Builder(activity).create();
-            alertDialog.setTitle(R.string.success);
-            alertDialog.setMessage(activity.getResources().getString(R.string.calculated_tonic,s));
+            if(isInteger(s.trim())){
+                alertDialog.setTitle(R.string.success);
+                alertDialog.setMessage(activity.getResources().getString(R.string.calculated_tonic,s));
+            }
+            else{
+                alertDialog.setTitle(R.string.an_error_occured);
+                alertDialog.setMessage(s);
+            }
             alertDialog.setButton(AlertDialog.BUTTON_NEUTRAL, activity.getResources().getString(R.string.change_metadata),
                     new DialogInterface.OnClickListener() {
                         public void onClick(DialogInterface dialog, int which) {
@@ -284,15 +310,20 @@ public class OnlineCalculationActivity extends AppCompatActivity {
             return responseString;
         }
 
-        private String calculateTonicOffline(String fileName, String metadata) {
-            String responseString;
-            try{
-                responseString = ""+AudioUtils.getTonicDrone(fileName,Integer.parseInt(metadata),90,10,1);
-            } catch (Exception e) {
-                responseString = e.toString();
-            }
-            return responseString;
-        }
 
+
+    }
+
+    public static boolean isInteger(String s) {
+        return isInteger(s,10);
+    }
+
+    public static boolean isInteger(String s, int radix) {
+        if(s.isEmpty()) return false;
+        for(int i = 0; i < s.length(); i++) {
+            Log.d("OnlineCalculationAct","i "+i+"char "+Character.digit(s.charAt(i),radix));
+            if(Character.digit(s.charAt(i),radix) < 0) return false;
+        }
+        return true;
     }
 }

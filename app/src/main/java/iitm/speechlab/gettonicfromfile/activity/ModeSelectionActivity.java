@@ -160,6 +160,11 @@ public class ModeSelectionActivity extends AppCompatActivity {
             intent.putExtra(iitm.speechlab.gettonicfromfile.Constants.URI,uri);
             startActivity(intent);
         }
+        else{
+            Intent intent = new Intent(ModeSelectionActivity.this, OfflineCalculationActivity.class);
+            intent.putExtra(iitm.speechlab.gettonicfromfile.Constants.URI,uri);
+            startActivity(intent);
+        }
     }
 
     private String getTimeString(){

@@ -21,8 +21,8 @@
         <activity
             android:name=".activity.OnlineCalculationActivity"
             android:configChanges="keyboardHidden|orientation"
-            android:screenOrientation="portrait"
-            android:label="@string/calculate_tonic"/>
+            android:label="@string/calculate_tonic"
+            android:screenOrientation="portrait" />
         <activity
             android:name=".activity.ModeSelectionActivity"
             android:configChanges="keyboardHidden|orientation">
@@ -32,8 +32,10 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".activity.SettingsActivity"
-            android:label="@string/settings"/>
+        <activity
+            android:name=".activity.SettingsActivity"
+            android:label="@string/settings" />
+        <activity android:name=".activity.OfflineCalculationActivity"></activity>
     </application>
 
 </manifest>

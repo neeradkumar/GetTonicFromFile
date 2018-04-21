@@ -4,54 +4,18 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".activity.OnlineCalculationActivity"
+    tools:context=".activity.OfflineCalculationActivity"
     android:keepScreenOn="true"
     android:orientation="vertical"
     android:background="#fff">
 
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="60dp"
-        android:layout_marginTop="40dp"
-        android:layout_marginLeft="20dp"
-        android:layout_marginRight="20dp"
-        android:gravity="center_vertical">
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/upload_in_progress"
-            android:textColor="@color/Black"
-            android:textSize="25sp"
-            android:id="@+id/upload_status_text"
-            />
-        <ImageView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:src="@drawable/ic_done_black_24dp"
-            android:id="@+id/upload_done_image"
-            android:padding="20dp"/>
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:textSize="25sp"
-            android:text=""
-            android:id="@+id/upload_speed_text"/>
-    </LinearLayout>
-    <ProgressBar
-        android:layout_width="match_parent"
-        android:layout_height="40dp"
-        style="?android:attr/progressBarStyleHorizontal"
-        android:max="100"
-        android:progress="45"
-        android:layout_marginLeft="20dp"
-        android:layout_marginRight="20dp"
-        android:id="@+id/upload_progress_bar"/>
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="@string/select_metadata"
         android:textColor="@color/Black"
         android:textSize="18sp"
+        android:layout_marginTop="20dp"
         android:layout_marginLeft="20dp"
         android:layout_marginStart="20dp" />
 
@@ -109,7 +73,7 @@
         android:text="@string/calculate"
         android:layout_gravity="center"
         android:id="@+id/calculate_button"
-        android:onClick="onCalculateClicked"
+        android:onClick="onCalculateClickedOffline"
         android:layout_marginBottom="20dp"
         android:background="@drawable/button_background_rounded_rect"
         android:textColor="@color/White" />

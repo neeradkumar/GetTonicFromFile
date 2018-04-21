@@ -35,4 +35,7 @@
     <string name="ftp_server">FTP server</string>
     <string name="update">Update</string>
     <string name="select_metadata">Select metadata</string>
+    <string name="upload_failed">Upload Failed</string>
+    <string name="retry">Retry</string>
+    <string name="an_error_occured">An error occured</string>
 </resources>
