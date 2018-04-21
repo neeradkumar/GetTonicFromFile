@@ -29,10 +29,9 @@ import java.io.IOException;
 import java.lang.ref.WeakReference;
 
 import iitm.speechlab.gettonicfromfile.Constants;
-import iitm.speechlab.gettonicfromfile.MultiPartUtils;
+import iitm.speechlab.gettonicfromfile.networkUtils.MultiPartUtils;
 import iitm.speechlab.gettonicfromfile.R;
-import iitm.speechlab.gettonicfromfile.TableButtonGroupLayout;
-import iitm.speechlab.gettonicfromfile.WavFileException;
+import iitm.speechlab.gettonicfromfile.views.TableButtonGroupLayout;
 
 public class OnlineCalculationActivity extends AppCompatActivity {
 

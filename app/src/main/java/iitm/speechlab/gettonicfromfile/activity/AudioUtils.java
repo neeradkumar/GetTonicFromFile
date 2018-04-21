@@ -4,8 +4,8 @@ import android.util.Log;
 
 import java.io.*;
 
-import iitm.speechlab.gettonicfromfile.WavFile;
-import iitm.speechlab.gettonicfromfile.WavFileException;
+import iitm.speechlab.gettonicfromfile.wavFileUtils.WavFile;
+import iitm.speechlab.gettonicfromfile.wavFileUtils.WavFileException;
 
 import static java.lang.Math.PI;
 import static java.lang.Math.log;

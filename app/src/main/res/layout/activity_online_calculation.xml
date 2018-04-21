@@ -47,7 +47,7 @@
         android:layout_marginRight="20dp"
         android:id="@+id/upload_progress_bar"/>
 
-    <iitm.speechlab.gettonicfromfile.TableButtonGroupLayout
+    <iitm.speechlab.gettonicfromfile.views.TableButtonGroupLayout
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_marginLeft="20dp"
@@ -94,7 +94,7 @@
                 android:layout_weight="1"
                 android:text="@string/other"/>
         </TableRow>
-    </iitm.speechlab.gettonicfromfile.TableButtonGroupLayout>
+    </iitm.speechlab.gettonicfromfile.views.TableButtonGroupLayout>
     <Button
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
