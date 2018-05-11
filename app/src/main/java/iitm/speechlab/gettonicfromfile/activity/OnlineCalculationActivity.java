@@ -1,10 +1,8 @@
 package iitm.speechlab.gettonicfromfile.activity;
 
-import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.net.Uri;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
@@ -17,6 +15,7 @@ import android.widget.ProgressBar;
 import android.widget.RadioButton;
 import android.widget.TextView;
 
+import net.gotev.uploadservice.MultipartUploadRequest;
 import net.gotev.uploadservice.ServerResponse;
 import net.gotev.uploadservice.UploadInfo;
 import net.gotev.uploadservice.UploadNotificationConfig;
@@ -24,31 +23,28 @@ import net.gotev.uploadservice.UploadService;
 import net.gotev.uploadservice.UploadStatusDelegate;
 import net.gotev.uploadservice.ftp.FTPUploadRequest;
 
-import java.io.File;
-import java.io.IOException;
-import java.lang.ref.WeakReference;
-
 import iitm.speechlab.gettonicfromfile.Constants;
-import iitm.speechlab.gettonicfromfile.networkUtils.MultiPartUtils;
 import iitm.speechlab.gettonicfromfile.R;
-import iitm.speechlab.gettonicfromfile.networkUtils.SharedPrefUtils;
+import iitm.speechlab.gettonicfromfile.utils.AudioUtils;
+import iitm.speechlab.gettonicfromfile.utils.SharedPrefUtils;
 import iitm.speechlab.gettonicfromfile.views.TableButtonGroupLayout;
 
 public class OnlineCalculationActivity extends AppCompatActivity {
 
     String fileName;
     boolean uploadComplete = false;
-    String uploadId;
     String filePath;
+    String trimmedFilePath;
     boolean finishing = false;
+    public static final boolean isFtp = false;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_online_calculation);
         Uri file = getIntent().getParcelableExtra(Constants.URI);
         filePath = file.getPath();
-        fileName = (new File(filePath)).getName();
-
+        fileName = AudioUtils.getTrimmedFileName(this);
+        trimmedFilePath = AudioUtils.getTrimmedFilePath(this);
         //set default as male
         RadioButton maleRadioButton = findViewById(R.id.metadata_male);
         TableButtonGroupLayout tableButtonGroupLayout = findViewById(R.id.metadata_radio_group);
@@ -62,10 +58,8 @@ public class OnlineCalculationActivity extends AppCompatActivity {
 
         if(!uploadComplete){
             calculateButton.setEnabled(false);
-            statusTextView.setText(R.string.upload_in_progress);
             uploadedImageView.setVisibility(View.GONE);
             progressBar.setProgress(0);
-
             final UploadStatusDelegate uploadStatusDelegate = new UploadStatusDelegate() {
                 @Override
                 public void onProgress(Context context, UploadInfo uploadInfo) {
@@ -82,7 +76,7 @@ public class OnlineCalculationActivity extends AppCompatActivity {
                             new DialogInterface.OnClickListener() {
                                 public void onClick(DialogInterface dialog, int which) {
                                     dialog.dismiss();
-                                    uploadFTP(OnlineCalculationActivity.this,filePath, uploadStatusDelegate1);
+                                    uploadFTP(OnlineCalculationActivity.this,trimmedFilePath, uploadStatusDelegate1, isFtp);
                                 }
                             });
                     alertDialog.setButton(AlertDialog.BUTTON_NEGATIVE, getResources().getString(R.string.leave),
@@ -95,7 +89,6 @@ public class OnlineCalculationActivity extends AppCompatActivity {
                             });
                     alertDialog.show();
                 }
-
                 @Override
                 public void onCompleted(Context context, UploadInfo uploadInfo, ServerResponse serverResponse) {
                     calculateButton.setEnabled(true);
@@ -104,13 +97,12 @@ public class OnlineCalculationActivity extends AppCompatActivity {
                     uploadSpeed.setVisibility(View.GONE);
                     progressBar.setProgress(100);
                 }
-
                 @Override
                 public void onCancelled(Context context, UploadInfo uploadInfo) {
-
                 }
             };
-            uploadFTP(this, filePath, uploadStatusDelegate);
+            String seconds = SharedPrefUtils.getStringData(this, Constants.NO_SECS, Constants.DEFAULT_SECONDS);
+            new TrimAudioFile(this,filePath, trimmedFilePath, Integer.parseInt(seconds), uploadStatusDelegate).execute();
         }
         else{
             calculateButton.setEnabled(true);
@@ -119,9 +111,7 @@ public class OnlineCalculationActivity extends AppCompatActivity {
             uploadSpeed.setVisibility(View.GONE);
             progressBar.setProgress(100);
         }
-
     }
-
 
     @Override
     public boolean onKeyDown(int keyCode, KeyEvent event) {
@@ -150,7 +140,6 @@ public class OnlineCalculationActivity extends AppCompatActivity {
         alertDialog.setButton(AlertDialog.BUTTON_POSITIVE, getResources().getString(R.string.stay),
                 new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int which) {
-
                         dialog.dismiss();
                     }
                 });
@@ -166,21 +155,30 @@ public class OnlineCalculationActivity extends AppCompatActivity {
     }
 
 
-    public void uploadFTP(final Context context, String filePath, UploadStatusDelegate uploadStatusDelegate) {
+    public void uploadFTP(final Context context, String filePath, UploadStatusDelegate uploadStatusDelegate, boolean isFtp) {
         try {
-            String server = SharedPrefUtils.getStringData(context,Constants.FTP_SERVER,Constants.DEFAULT_FTP_SERVER);
-            String[] words = server.split(":");
-            String
-             uploadId =
-                    new FTPUploadRequest(context, words[0], Integer.parseInt(words[1]))
-                            .setUsernameAndPassword("user", "1234")
-                            .addFileToUpload( filePath,"/")
-                            .setNotificationConfig(new UploadNotificationConfig())
-                            .setMaxRetries(4)
-                            .setDelegate(uploadStatusDelegate)
-                            .startUpload();
+            if(isFtp){
+                String server = SharedPrefUtils.getStringData(context,Constants.FTP_SERVER,Constants.DEFAULT_FTP_SERVER);
+                String[] words = server.split(":");
+                new FTPUploadRequest(context, words[0], Integer.parseInt(words[1]))
+                    .setUsernameAndPassword("user", "1234")
+                    .addFileToUpload( filePath,"/")
+                    .setNotificationConfig(new UploadNotificationConfig())
+                    .setMaxRetries(4)
+                    .setDelegate(uploadStatusDelegate)
+                    .startUpload();
+            }
+            else{
+                String server = SharedPrefUtils.getStringData(context,Constants.FTP_SERVER,Constants.DEFAULT_FTP_SERVER);
+                new MultipartUploadRequest(context, server)
+                    .addFileToUpload(filePath,"file")
 
-
+                    .setAutoDeleteFilesAfterSuccessfulUpload(true)
+                    .setDelegate(uploadStatusDelegate)
+                    .setMaxRetries(4)
+                    .setNotificationConfig( new UploadNotificationConfig())
+                    .startUpload();
+            }
         } catch (Exception exc) {
             Log.e("AndroidUploadService", exc.getMessage(), exc);
         }
@@ -189,8 +187,8 @@ public class OnlineCalculationActivity extends AppCompatActivity {
     public void onCalculateClicked(View view) {
         TableButtonGroupLayout tableButtonGroupLayout = findViewById(R.id.metadata_radio_group);
         String metadata = getMetadata(tableButtonGroupLayout.getCheckedRadioButtonId());
-        GetTonicDrone uploadFileToServer = new OnlineCalculationActivity.GetTonicDrone (OnlineCalculationActivity.this, fileName,metadata);
-        uploadFileToServer.execute();
+        GetTonicDrone getTonicDrone = new GetTonicDrone (OnlineCalculationActivity.this, fileName,metadata);
+        getTonicDrone.execute();
     }
 
     public static String getMetadata(int checkedRadioButtonId) {
@@ -207,8 +205,9 @@ public class OnlineCalculationActivity extends AppCompatActivity {
         return "4";
     }
 
-    private void finishActivity(){
+    protected void finishActivity(){
         finishing = true;
+        UploadService.stopAllUploads();
         finish();
     }
 
@@ -216,114 +215,5 @@ public class OnlineCalculationActivity extends AppCompatActivity {
     protected void onDestroy() {
         UploadService.stopAllUploads();
         super.onDestroy();
-    }
-
-
-
-    public static class GetTonicDrone extends AsyncTask<Void, Integer, String> {
-
-        private WeakReference<OnlineCalculationActivity> activityReference;
-        String fileName;
-        String metadata;
-        String percentage;
-        String seconds;
-        String method;
-        private ProgressDialog dialog;
-        // only retain a weak reference to the activity
-        GetTonicDrone (OnlineCalculationActivity context, String fileName, String metadata) {
-            activityReference = new WeakReference<>(context);
-            this.fileName = fileName;
-            this.metadata = metadata;
-            dialog = new ProgressDialog(context);
-            percentage = SharedPrefUtils.getStringData(context, Constants.PERCENTAGE, Constants.DEFAULT_PERCENTAGE);
-            seconds = SharedPrefUtils.getStringData(context, Constants.NO_SECS, Constants.DEFAULT_SECONDS);
-            method = SharedPrefUtils.getStringData(context, Constants.DEFAULT_METHOD, Constants.DEFAULT_METHOD);
-        }
-
-        @Override
-        protected void onPreExecute() {
-            super.onPreExecute();
-            OnlineCalculationActivity activity = activityReference.get();
-            if (activity == null || activity.isFinishing()) return;
-            dialog.setMessage(activity.getResources().getString(R.string.calculating_wait));
-            dialog.setCancelable(false);
-            dialog.show();
-        }
-
-        @Override
-        protected String doInBackground(Void... params) {
-            return calculateTonicOnline(fileName,metadata, percentage, seconds, method);
-        }
-
-        @Override
-        protected void onPostExecute(String s) {
-            super.onPostExecute(s);
-            if(dialog.isShowing()) dialog.dismiss();
-            // get a reference to the activity if it is still there
-            final OnlineCalculationActivity activity = activityReference.get();
-            if (activity == null || activity.isFinishing()) return;
-
-            Log.d("OnlineCalculationAct","start"+s+"end");
-            AlertDialog alertDialog = new AlertDialog.Builder(activity).create();
-            if(isInteger(s.trim())){
-                alertDialog.setTitle(R.string.success);
-                alertDialog.setMessage(activity.getResources().getString(R.string.calculated_tonic,s));
-            }
-            else{
-                alertDialog.setTitle(R.string.an_error_occured);
-                alertDialog.setMessage(s);
-            }
-            alertDialog.setButton(AlertDialog.BUTTON_NEUTRAL, activity.getResources().getString(R.string.change_metadata),
-                    new DialogInterface.OnClickListener() {
-                        public void onClick(DialogInterface dialog, int which) {
-                            dialog.dismiss();
-                        }
-                    });
-            alertDialog.setButton(AlertDialog.BUTTON_POSITIVE, activity.getResources().getString(R.string.measure_another),
-                    new DialogInterface.OnClickListener() {
-                        public void onClick(DialogInterface dialog, int which) {
-                            dialog.dismiss();
-
-                            activity.finishActivity();
-                        }
-                    });
-            alertDialog.show();
-
-        }
-
-        private String calculateTonicOnline(String fileName, String metadata,  String percentage, String seconds, String method) {
-            String responseString;
-
-            try {
-                String requestURL = "http://"+SharedPrefUtils.getStringData(activityReference.get(),Constants.SERVER, Constants.DEFAULT_SERVER)+"/getTonicDrone";
-                MultiPartUtils multipart = new MultiPartUtils(requestURL);
-                multipart.addFormField("file_name", fileName);
-                multipart.addFormField("meta_data", metadata);
-                multipart.addFormField("percentage", percentage);
-                multipart.addFormField("seconds", seconds);
-                multipart.addFormField("method", method);
-                responseString = multipart.finish();
-            } catch (IOException e) {
-                responseString = e.toString();
-            }
-
-            return responseString;
-        }
-
-
-
-    }
-
-    public static boolean isInteger(String s) {
-        return isInteger(s,10);
-    }
-
-    public static boolean isInteger(String s, int radix) {
-        if(s.isEmpty()) return false;
-        for(int i = 0; i < s.length(); i++) {
-            Log.d("OnlineCalculationAct","i "+i+"char "+Character.digit(s.charAt(i),radix));
-            if(Character.digit(s.charAt(i),radix) < 0) return false;
-        }
-        return true;
     }
 }

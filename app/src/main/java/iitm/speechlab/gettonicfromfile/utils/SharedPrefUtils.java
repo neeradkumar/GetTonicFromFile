@@ -1,4 +1,4 @@
-package iitm.speechlab.gettonicfromfile.networkUtils;
+package iitm.speechlab.gettonicfromfile.utils;
 
 import android.content.Context;
 import android.content.SharedPreferences;

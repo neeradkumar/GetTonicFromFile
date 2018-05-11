@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">Get Tonic From File</string>
+    <string name="app_name">Identify Tonic</string>
     <string name="online">Online</string>
     <string name="offline">Offline</string>
     <string name="choose_mode">Select mode of calculation</string>
@@ -38,4 +38,9 @@
     <string name="upload_failed">Upload Failed</string>
     <string name="retry">Retry</string>
     <string name="an_error_occured">An error occured</string>
+    <string name="trimming">Trimming</string>
+    <string name="record_for_a_minute">Record for a minute (drone compulsory)</string>
+    <string name="click_to_start">Click to start recording</string>
+    <string name="save">Save</string>
+    <string name="failed_to_trim">Failed to trim</string>
 </resources>

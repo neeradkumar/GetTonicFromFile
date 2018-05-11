@@ -15,6 +15,9 @@ public class Constants {
     public static final String DEFAULT_PERCENTAGE = "10";
     public static final String DEFAULT_SECONDS = "90";
 
-    public static final String DEFAULT_SERVER = "192.168.31.217:5000";
-    public static final String DEFAULT_FTP_SERVER = "192.168.31.217:2000";
+    //public static final String DEFAULT_SERVER = "192.168.31.217:5000";
+    //public static final String DEFAULT_FTP_SERVER = "192.168.31.217:2000";
+
+    public static final String DEFAULT_SERVER = "https://www.iitm.ac.in/donlab/tonicserver";
+    public static final String DEFAULT_FTP_SERVER = "https://www.iitm.ac.in/donlab/tonicuploadfile";
 }

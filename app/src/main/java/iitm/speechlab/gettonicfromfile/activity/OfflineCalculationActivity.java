@@ -10,16 +10,16 @@ import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.widget.RadioButton;
 
-import java.io.File;
 import java.lang.ref.WeakReference;
 
 import iitm.speechlab.gettonicfromfile.Constants;
 import iitm.speechlab.gettonicfromfile.R;
-import iitm.speechlab.gettonicfromfile.networkUtils.SharedPrefUtils;
+import iitm.speechlab.gettonicfromfile.utils.AudioUtils;
+import iitm.speechlab.gettonicfromfile.utils.SharedPrefUtils;
 import iitm.speechlab.gettonicfromfile.views.TableButtonGroupLayout;
 
 import static iitm.speechlab.gettonicfromfile.activity.OnlineCalculationActivity.getMetadata;
-import static iitm.speechlab.gettonicfromfile.activity.OnlineCalculationActivity.isInteger;
+import static iitm.speechlab.gettonicfromfile.utils.Utils.isInteger;
 
 public class OfflineCalculationActivity extends AppCompatActivity {
 
@@ -124,14 +124,11 @@ public class OfflineCalculationActivity extends AppCompatActivity {
             try{
                 int methodInt = 2;
                 if("Peak picking method".equals(method)) methodInt =1;
-                responseString = ""+AudioUtils.getTonicDrone(fileName,Integer.parseInt(metadata),Integer.parseInt(seconds), Integer.parseInt(percentage),methodInt);
+                responseString = ""+ AudioUtils.getTonicDrone(fileName,Integer.parseInt(metadata),Integer.parseInt(seconds), Integer.parseInt(percentage),methodInt);
             } catch (Exception e) {
                 responseString = e.toString();
             }
             return responseString;
         }
-
-
-
     }
 }

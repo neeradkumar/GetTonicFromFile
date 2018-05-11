@@ -1,5 +1,7 @@
-package iitm.speechlab.gettonicfromfile.activity;
+package iitm.speechlab.gettonicfromfile.utils;
 
+import android.content.Context;
+import android.provider.Settings;
 import android.util.Log;
 
 import java.io.*;
@@ -7,6 +9,7 @@ import java.io.*;
 import iitm.speechlab.gettonicfromfile.wavFileUtils.WavFile;
 import iitm.speechlab.gettonicfromfile.wavFileUtils.WavFileException;
 
+import static iitm.speechlab.gettonicfromfile.wavFileUtils.WavFile.newWavFile;
 import static java.lang.Math.PI;
 import static java.lang.Math.log;
 import static java.lang.Math.sin;
@@ -196,26 +199,15 @@ public class AudioUtils {
         return maxIndex;
     }
 
-
-
-    /*
-    GetTonicDrone
-    Inputs:
-    filename - Name of wav file
-    metadata - 1 male; 2 female; 3 Instrumental; 4 - not known; Default = 4
-    sec - No.of seconds of sampling to be taken
-    per - Percentage of low energy frames to be taken
-    algo - 1 for enmf, 2 for ceppitch
-    */
-    public static int getTonicDrone (String filename, int metadata,int sec, int per, int algo) throws IOException, WavFileException {
-
-
-        Log.d("AudioUtils","getTonicDrone");
+    public static String getTrimmedFilePath(Context context){
+        return context.getApplicationInfo().dataDir+"/"+getTrimmedFileName(context);
+    }
+    public static String getTrimmedFileName(Context context){
+        return DeviceUuidFactory.id(context)+".wav";
+    }
+    public static void trim(String filePath, String trimmedFilePath, int sec) throws IOException, WavFileException {
+        WavFile wavFile = WavFile.openWavFile(new File(filePath));
         int numItems;
-
-        int i,j,k;
-        WavFile wavFile = WavFile.openWavFile(new File(filename));
-
         numItems = (int)(wavFile.getNumFrames()*wavFile.getNumChannels());
         Log.d("AudioUtils","numItems "+numItems);
         //double[] wavFileDouble = new double[numItems];
@@ -245,8 +237,94 @@ public class AudioUtils {
             ex = new double[exSize];
             wavFile.readFrames(ex,exSize);
         }
+        StringBuilder s = new StringBuilder();
+        for (int i=0;i<100;i++) {
+            s.append(" ").append(ex[i]);
+        }
         wavFile.close();
-        Log.d("AudioUtils","closed wavFile ");
+        Log.d("AudioUtils","closed wavFile "+s);
+
+        WavFile trimmedWavFile = WavFile.newWavFile(new File(trimmedFilePath), wavFile.getNumChannels(),exSize, wavFile.getValidBits(), wavFile.getSampleRate());
+        trimmedWavFile.writeFrames(ex,exSize);
+        Log.d("AudioUtils","trimmed wavFile "+s);
+    }
+
+    public static class WavFileSamples{
+        double[] samples;
+        int sampleRate;
+        int exSize;
+
+        public double[] getSamples() {
+            return samples;
+        }
+
+        WavFileSamples(double[] samples, int sampleRate, int exSize) {
+            this.samples = samples;
+            this.sampleRate = sampleRate;
+            this.exSize = exSize;
+        }
+    }
+    public static WavFileSamples getSamples(String filename, int sec) throws IOException, WavFileException {
+        WavFile wavFile = WavFile.openWavFile(new File(filename));
+        int numItems;
+        numItems = (int)(wavFile.getNumFrames()*wavFile.getNumChannels());
+        Log.d("AudioUtils","numItems "+numItems);
+        //double[] wavFileDouble = new double[numItems];
+        //wavFile.readFrames(wavFileDouble,numItems);
+        int samplerate = (int)wavFile.getSampleRate();
+
+
+
+        /* Take the required duration and store it in ex */
+
+        double[] ex;
+        int exSize;
+        int dur =  numItems/samplerate - sec;
+
+        if (dur > 1)
+        {
+            int r = (int)(Math.random())%dur;
+            //random number to determine starting point
+            exSize = sec*(samplerate);
+            ex = new double[exSize];
+            wavFile.readFrames(ex,r*samplerate,exSize);
+            //for(i=0;i<exSize;i++)	ex[i] = wavFileDouble[i+r*samplerate];
+        }
+        else
+        {
+            exSize = numItems;
+            ex = new double[exSize];
+            wavFile.readFrames(ex,exSize);
+        }
+        StringBuilder s = new StringBuilder();
+        for (int i=0;i<100;i++) {
+            s.append(" ").append(ex[i]);
+        }
+        wavFile.close();
+        Log.d("AudioUtils","closed wavFile "+s);
+        return new WavFileSamples(ex,samplerate, exSize);
+    }
+
+    /*
+    GetTonicDrone
+    Inputs:
+    filename - Name of wav file
+    metadata - 1 male; 2 female; 3 Instrumental; 4 - not known; Default = 4
+    sec - No.of seconds of sampling to be taken
+    per - Percentage of low energy frames to be taken
+    algo - 1 for enmf, 2 for ceppitch
+    */
+    public static int getTonicDrone (String filename, int metadata,int sec, int per, int algo) throws IOException, WavFileException {
+
+
+        Log.d("AudioUtils","getTonicDrone");
+
+
+        int i,j,k;
+         WavFileSamples wavFileSamples = getSamples(filename, sec);
+        double[] ex = wavFileSamples.samples;
+        int samplerate = wavFileSamples.sampleRate;
+        int exSize = wavFileSamples.exSize;
 
         /* Split into frames and store in EX */
 
@@ -310,7 +388,7 @@ public class AudioUtils {
         int minim = getMin(metadata);
         int maxim = getMax(metadata);
 
-        Log.d("AudioUtils","calculating now "+numItems);
+        //Log.d("AudioUtils","calculating now "+numItems);
         /*ENMF or LowEnergyHist*/
         int pitch;
         if(algo == 1) pitch = (int)PitchENMF(EXLowEng, newHeight, winSize2, samplerate, minim, maxim) ;

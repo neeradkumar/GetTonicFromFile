@@ -1,6 +1,6 @@
-package iitm.speechlab.gettonicfromfile.networkUtils;
+package iitm.speechlab.gettonicfromfile.utils;
 
-import android.util.Log;
+import org.apache.commons.io.FileUtils;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -8,16 +8,12 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
-import java.io.OutputStreamWriter;
-import java.io.PrintWriter;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.net.URLConnection;
 
 
 import java.io.*;
-import java.net.HttpURLConnection;
-import java.net.URL;
+import java.nio.ByteBuffer;
 import java.nio.file.Files;
 
 public class MultiPartUtils {
@@ -68,6 +64,17 @@ public class MultiPartUtils {
         request.flush();
     }
 
+    public void addDoubleArrayAsByteFile(String name, double[] doubles) throws IOException {
+        byte[] bytes = doubleArrayTobyteArray(doubles);
+        request.writeBytes(this.twoHyphens + this.boundary + this.crlf);
+        request.writeBytes("Content-Disposition: form-data; name=\"" + name + "\""+ this.crlf);
+        request.writeBytes("Content-Type: text/plain; charset=UTF-8" + this.crlf);
+        request.writeBytes(this.crlf);
+        request.write(bytes);
+        request.writeBytes(this.crlf);
+        request.flush();
+
+    }
     /**
      * Adds a upload file section to the request
      *
@@ -145,4 +152,18 @@ public class MultiPartUtils {
 
         return response;
     }
+
+    public static byte[] doubleArrayTobyteArray(double[] doubles){
+        ByteBuffer bb = ByteBuffer.allocate(doubles.length * 8);
+        for(double d : doubles) {
+            bb.putDouble(d);
+        }
+        return bb.array();
+    }
+
+
+    public static void writeToFile(String fileName, byte[] samples) throws IOException {
+        FileUtils.writeByteArrayToFile(new File(fileName), samples);
+    }
+
 }

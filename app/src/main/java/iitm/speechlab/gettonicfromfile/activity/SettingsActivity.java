@@ -1,6 +1,5 @@
 package iitm.speechlab.gettonicfromfile.activity;
 
-import android.support.v4.widget.SimpleCursorAdapter;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
@@ -12,7 +11,7 @@ import android.widget.Toast;
 
 import iitm.speechlab.gettonicfromfile.Constants;
 import iitm.speechlab.gettonicfromfile.R;
-import iitm.speechlab.gettonicfromfile.networkUtils.SharedPrefUtils;
+import iitm.speechlab.gettonicfromfile.utils.SharedPrefUtils;
 
 public class SettingsActivity extends AppCompatActivity {
 

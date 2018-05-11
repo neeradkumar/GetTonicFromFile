@@ -8,17 +8,19 @@ import android.os.PersistableBundle;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.view.Display;
 import android.view.View;
 import android.widget.RadioGroup;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.aditya.filebrowser.Constants;
 import com.aditya.filebrowser.FileChooser;
+import com.deskode.recorddialog.RecordDialog;
 import com.sensorberg.permissionbitte.BitteBitte;
 import com.sensorberg.permissionbitte.PermissionBitte;
 
 import java.io.File;
-import java.net.URI;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
@@ -28,7 +30,7 @@ import cafe.adriel.androidaudiorecorder.model.AudioChannel;
 import cafe.adriel.androidaudiorecorder.model.AudioSampleRate;
 import cafe.adriel.androidaudiorecorder.model.AudioSource;
 import iitm.speechlab.gettonicfromfile.R;
-import iitm.speechlab.gettonicfromfile.networkUtils.SharedPrefUtils;
+import iitm.speechlab.gettonicfromfile.utils.SharedPrefUtils;
 
 public class ModeSelectionActivity extends AppCompatActivity {
     public static final int PICK_FILE_REQUEST = 1;
@@ -106,6 +108,26 @@ public class ModeSelectionActivity extends AppCompatActivity {
     }
 
     public void onRecordClicked(View view) {
+        //startRecordActivity();
+        startRecordDialog();
+    }
+
+    public void startRecordDialog(){
+        RecordDialog recordDialog = RecordDialog.newInstance("Record Audio");
+        recordDialog.setMessage(getString(R.string.click_to_start));
+        recordDialog.setTitle(getString(R.string.record_for_a_minute));
+        recordDialog.setPositiveButton(getString(R.string.save), new RecordDialog.ClickListener() {
+            @Override
+            public void OnClickListener(String path) {
+                Uri file = Uri.fromFile(new File(path));
+                startMainActivity(file);
+                //Toast.makeText(ModeSelectionActivity.this,"Save audio: " + path, Toast.LENGTH_LONG).show();
+            }
+        });
+
+        recordDialog.show(ModeSelectionActivity.this.getFragmentManager(),"TAG");
+    }
+    public void startRecordActivity(){
         recordedFilePath = Environment.getExternalStorageDirectory() + "/recorded_audio_"+getTimeString()+".wav";
         int color = getResources().getColor(R.color.colorPrimaryDark);
         int requestCode = 0;
